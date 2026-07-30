@@ -1,0 +1,69 @@
+using BepInEx;
+using UnityEngine;
+using UnityEngine.XR;
+using System.Collections.Generic;
+
+namespace BillyChecker
+{
+    [BepInPlugin("com.christian.billychecker", "BillyChecker", "1.0.0")]
+    public class Class1 : BaseUnityPlugin
+    {
+        private bool showMenu = false;
+        private Rect windowRect = new Rect(20, 20, 300, 200);
+        private bool menuButtonWasPressed = false;
+
+        private void Update()
+        {
+            // Check VR controller input (Left Primary Button / X button)
+            bool isVrPressed = IsLeftPrimaryButtonPressed();
+
+            // Toggle on VR controller button down
+            if (isVrPressed && !menuButtonWasPressed)
+            {
+                showMenu = !showMenu;
+                Debug.Log("Menu Toggled via VR Controller: " + showMenu);
+            }
+            menuButtonWasPressed = isVrPressed;
+
+            // Toggle on PC keyboard F1 key press
+            if (Input.GetKeyDown(KeyCode.F1))
+            {
+                showMenu = !showMenu;
+                Debug.Log("Menu Toggled via Keyboard F1: " + showMenu);
+            }
+        }
+
+        private bool IsLeftPrimaryButtonPressed()
+        {
+            var leftHandDevices = new List<InputDevice>();
+            InputDevices.GetDevicesAtCharacteristics(InputDeviceCharacteristics.Left | InputDeviceCharacteristics.Controller, leftHandDevices);
+
+            foreach (var device in leftHandDevices)
+            {
+                if (device.TryGetFeatureValue(CommonUsages.primaryButton, out bool pressed) && pressed)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private void OnGUI()
+        {
+            if (showMenu)
+            {
+                windowRect = GUI.Window(123456, windowRect, DrawWindow, "BillyChecker Dual Input Menu");
+            }
+        }
+
+        private void DrawWindow(int windowID)
+        {
+            GUILayout.Label("Mod Menu Open (PC or VR)");
+            if (GUILayout.Button("Close Menu"))
+            {
+                showMenu = false;
+            }
+            GUI.DragWindow();
+        }
+    }
+}
