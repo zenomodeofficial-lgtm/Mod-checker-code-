@@ -1,0 +1,63 @@
+using BepInEx;
+using UnityEngine;
+using UnityEngine.XR;
+using System.Collections.Generic;
+
+namespace BillyChecker
+{
+    [BepInPlugin("com.christian.billychecker", "BillyChecker", "1.0.0")]
+    public class Class1 : BaseUnityPlugin
+    {
+        private bool showMenu = false;
+        private Rect windowRect = new Rect(20, 20, 300, 200);
+        private bool menuButtonWasPressed = false;
+
+        private void Update()
+        {
+            // Check the left controller's primary button (X button on Oculus/Meta controllers)
+            bool isPressed = IsLeftPrimaryButtonPressed();
+
+            // Toggle menu on button down (prevents toggling constantly while holding it)
+            if (isPressed && !menuButtonWasPressed)
+            {
+                showMenu = !showMenu;
+                Debug.Log("VR Mod Menu Toggled: " + showMenu);
+            }
+            menuButtonWasPressed = isPressed;
+        }
+
+        private bool IsLeftPrimaryButtonPressed()
+        {
+            var leftHandDevices = new List<InputDevice>();
+            InputDevices.GetDevicesAtCharacteristics(InputDeviceCharacteristics.Left | InputDeviceCharacteristics.Controller, leftHandDevices);
+
+            foreach (var device in leftHandDevices)
+            {
+                if (device.TryGetFeatureValue(CommonUsages.primaryButton, out bool pressed) && pressed)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private void OnGUI()
+        {
+            if (showMenu)
+            {
+                // Draws the menu on your game screen inside the headset when toggled
+                windowRect = GUI.Window(123456, windowRect, DrawWindow, "BillyChecker VR Menu");
+            }
+        }
+
+        private void DrawWindow(int windowID)
+        {
+            GUILayout.Label("Gorilla Tag Mod Menu Active");
+            if (GUILayout.Button("Close Menu"))
+            {
+                showMenu = false;
+            }
+            GUI.DragWindow();
+        }
+    }
+}
