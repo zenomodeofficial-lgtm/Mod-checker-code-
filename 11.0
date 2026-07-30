@@ -1,0 +1,65 @@
+using BepInEx;
+using UnityEngine;
+
+namespace BillyChecker
+{
+    [BepInPlugin("com.christian.billychecker", "BillyChecker", "1.0.0")]
+    public class Class1 : BaseUnityPlugin
+    {
+        private bool showMenu = false;
+        private UnityEngine.Rect windowRect = new UnityEngine.Rect(50, 50, 250, 300);
+        private bool buttonWasPressed = false;
+
+        private void Update()
+        {
+            bool xPressed = false;
+
+            try
+            {
+                if (ControllerInputPoller.instance != null)
+                {
+                    xPressed = ControllerInputPoller.instance.leftControllerPrimaryButton;
+                }
+            }
+            catch { }
+
+            if (xPressed && !buttonWasPressed)
+            {
+                showMenu = !showMenu;
+            }
+            buttonWasPressed = xPressed;
+
+            if (Input.GetKeyDown(KeyCode.F1))
+            {
+                showMenu = !showMenu;
+            }
+        }
+
+        private void OnGUI()
+        {
+            if (showMenu)
+            {
+                windowRect = UnityEngine.GUI.Window(999, windowRect, DrawMenuWindow, "BillyChecker Menu");
+            }
+        }
+
+        private void DrawMenuWindow(int windowID)
+        {
+            GUILayout.BeginVertical();
+            GUILayout.Label("--- BillyChecker VR ---");
+
+            if (GUILayout.Button("Functional Button"))
+            {
+                Debug.Log("Button clicked!");
+            }
+
+            if (GUILayout.Button("Close Menu"))
+            {
+                showMenu = false;
+            }
+
+            GUILayout.EndVertical();
+            UnityEngine.GUI.DragWindow();
+        }
+    }
+}
