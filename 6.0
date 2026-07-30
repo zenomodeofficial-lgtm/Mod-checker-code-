@@ -1,0 +1,94 @@
+using BepInEx;
+using UnityEngine;
+using GorillaLocomotion;
+
+namespace BillyChecker
+{
+    [BepInPlugin("com.christian.billychecker", "BillyChecker", "1.0.0")]
+    public class Class1 : BaseUnityPlugin
+    {
+        private bool showMenu = false;
+        private Rect windowRect = new Rect(20, 20, 250, 300);
+        private bool buttonWasPressed = false;
+
+        private void Update()
+        {
+            bool xPressed = false;
+
+            try
+            {
+                if (ControllerInputPoller.instance != null)
+                {
+                    xPressed = ControllerInputPoller.instance.leftControllerPrimaryButton;
+                }
+            }
+            catch { }
+
+            if (xPressed && !buttonWasPressed)
+            {
+                showMenu = !showMenu;
+                PlayClickSound();
+            }
+            buttonWasPressed = xPressed;
+
+            if (Input.GetKeyDown(KeyCode.F1))
+            {
+                showMenu = !showMenu;
+                PlayClickSound();
+            }
+        }
+
+        private void OnGUI()
+        {
+            if (showMenu)
+            {
+                try
+                {
+                    if (Player.Instance != null && Player.Instance.leftControllerTransform != null && Camera.main != null)
+                    {
+                        Vector3 leftHandPos = Player.Instance.leftControllerTransform.position;
+                        Vector3 screenPos = Camera.main.WorldToScreenPoint(leftHandPos + new Vector3(0, 0.15f, 0));
+                        windowRect.x = screenPos.x;
+                        windowRect.y = Screen.height - screenPos.y;
+                    }
+                }
+                catch { }
+
+                windowRect = GUI.Window(999, windowRect, DrawMenuWindow, "BillyChecker Menu");
+            }
+        }
+
+        private void DrawMenuWindow(int windowID)
+        {
+            GUILayout.BeginVertical();
+            GUILayout.Label("--- BillyChecker VR ---");
+
+            if (GUILayout.Button("Functional Button"))
+            {
+                PlayClickSound();
+                Debug.Log("Button clicked!");
+            }
+
+            if (GUILayout.Button("Close Menu"))
+            {
+                PlayClickSound();
+                showMenu = false;
+            }
+
+            GUILayout.EndVertical();
+            GUI.DragWindow();
+        }
+
+        private void PlayClickSound()
+        {
+            try
+            {
+                if (Player.Instance != null && Player.Instance.leftControllerTransform != null)
+                {
+                    AudioSource.PlayClipAtPoint(Player.Instance.jumpSound, Player.Instance.leftControllerTransform.position, 0.6f);
+                }
+            }
+            catch { }
+        }
+    }
+}
